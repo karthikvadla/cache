@@ -2,25 +2,26 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-class Output(object):
+class Summary(object):
     """Cache Simulator output"""
 
-    def __init__(self, total_cache_accesses, num_cache_reads,
-                 num_cache_writes, num_invalidates, num_cache_hits,
-                 num_cache_misses, hit_ratio, miss_ratio,
-                 num_evictions, num_writebacks):
-        self.total_cache_accesses = total_cache_accesses
-        self.num_cache_reads = num_cache_reads
-        self.num_cache_writes = num_cache_writes
-        self.num_invalidates = num_invalidates
-        self.num_cache_hits = num_cache_hits
-        self.num_cache_misses = num_cache_misses
-        self.hit_ratio = hit_ratio
-        self.miss_ratio = miss_ratio
-        self.num_evictions = num_evictions
-        self.num_writebacks = num_writebacks
+    def __init__(self):
+        self.total_cache_accesses = 0
+        self.num_cache_reads = 0
+        self.num_cache_writes = 0
+        self.num_invalidates = 0
+        self.num_cache_hits = 0
+        self.num_cache_misses = 0
+        self.hit_ratio = 0
+        self.miss_ratio = 0
+        self.num_evictions = 0
+        self.num_writebacks = 0
 
     def print_output(self):
+        if self.total_cache_accesses != 0:
+            self.miss_ratio = self.num_cache_misses / self.total_cache_accesses
+            self.hit_ratio = self.num_cache_hits / self.total_cache_accesses
+
         print("Total number of cache accesses: {}".format(self.total_cache_accesses))
         print("Number of cache reads: {}".format(self.num_cache_reads))
         print("Number of cache writes: {}".format(self.num_cache_writes))

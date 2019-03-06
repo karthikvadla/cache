@@ -4,16 +4,16 @@ from __future__ import print_function
 
 import os
 import sys
-import math
 from argparse import ArgumentParser
 from cache import Cache
+from summary import Summary
 
 
 class CacheSimulation(object):
     """Cache Simulation"""
 
     def main(self):
-        args, unknown = self.parse_args(sys.argv[1:])
+        args = self.parse_args(sys.argv[1:])
         try:
             self.validate_args(args)
         except (IOError, ValueError) as e:
@@ -50,9 +50,9 @@ class CacheSimulation(object):
         arg_parser.add_argument(
             "-r", "--replacement-policy",
             help="Replacement Policy",
-            dest="replacement_policy", type=int, default=0, required=True, choices=[0,1])
+            dest="replacement_policy", type=int, default=0, choices=[0,1])
 
-        return arg_parser.parse_known_args(args)
+        return arg_parser.parse_args(args)
 
 
     def validate_args(self, args):
@@ -83,15 +83,18 @@ class CacheSimulation(object):
 
         # cache.show_cache()
 
+        # output summary
+        summary = Summary()
         # print('Loading tracefile...')
         trace_file = open(args.input_trace_file_path, "r")
         for line in trace_file.read().splitlines():
             line_info = line.split()
             access_type = int(line_info[0])
             hex_address = line_info[1]
-            cache.process_cache(access_type, hex_address)
+            cache.process_cache(access_type, hex_address, summary)
 
-        cache.show_cache()
+        # cache.show_cache()
+        summary.print_output()
 
 if __name__ == "__main__":
     util = CacheSimulation()
