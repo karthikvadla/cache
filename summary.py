@@ -12,15 +12,15 @@ class Summary(object):
         self.num_invalidates = 0
         self.num_cache_hits = 0
         self.num_cache_misses = 0
-        self.hit_ratio = 0
-        self.miss_ratio = 0
+        self.hit_ratio = ""
+        self.miss_ratio = ""
         self.num_evictions = 0
         self.num_writebacks = 0
 
     def print_output(self):
         if self.total_cache_accesses != 0:
-            self.miss_ratio = self.num_cache_misses / self.total_cache_accesses
-            self.hit_ratio = self.num_cache_hits / self.total_cache_accesses
+            self.miss_ratio = str(int((self.num_cache_misses / self.total_cache_accesses) * 100)) + "%"
+            self.hit_ratio = str(int((self.num_cache_hits / self.total_cache_accesses) * 100)) + "%"
 
         print("Total number of cache accesses: {}".format(self.total_cache_accesses))
         print("Number of cache reads: {}".format(self.num_cache_reads))

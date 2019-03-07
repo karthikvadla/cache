@@ -6,6 +6,8 @@ import os
 import sys
 import math
 from set import Set
+from directed import DirectedMap
+from nway_assocative import NWayAssociative
 
 class Cache(object):
     """Cache data structure"""
@@ -15,7 +17,7 @@ class Cache(object):
         self.num_ways = num_ways
         self.line_size = line_size
         self.replacement_policy = replacement_policy
-        self.sets = [Set(num_ways, line_size) for i in range(num_sets)]
+        self.sets = [Set(num_ways, replacement_policy) for i in range(num_sets)]
 
 
     def process_cache(self, access_type, hex_address, summary):
@@ -28,99 +30,27 @@ class Cache(object):
         # print("tag_address: {}".format(tag_address))
         # print("index_bits: {}".format(index_bits))
         # print("line_index: {}".format(line_index))
+        self.invoke_access_type(access_type, line_index, tag_address, self.replacement_policy, summary)
 
-        if self.num_ways == 1:
-            self.directed_map(access_type, line_index, tag_address, summary)
-
-    def invoke_access_type(self, access_type, line_index, tag_address, summary):
+    def invoke_access_type(self, access_type, line_index, tag_address, replacement_policy, summary):
         if access_type == 0:
-            self.read(line_index, tag_address, summary)
+            if self.num_ways == 1:
+                DirectedMap().read(self.sets, line_index, tag_address, summary)
+            else:
+                NWayAssociative().read(self.sets,line_index, tag_address, replacement_policy, summary)
         elif access_type == 1:
-            self.write(line_index, tag_address, summary)
+            if self.num_ways == 1:
+                DirectedMap().write(self.sets,line_index, tag_address, summary)
+            else:
+                NWayAssociative().write(self.sets,line_index, tag_address, replacement_policy, summary)
         elif access_type == 2:
-            self.invalidate(line_index, tag_address, summary)
+            if self.num_ways == 1:
+                DirectedMap().invalidate(self.sets,line_index, tag_address, summary)
+            else:
+                NWayAssociative().invalidate(self.sets,line_index, tag_address, replacement_policy, summary)
         else:
             raise ValueError("access_type should be one of [0,1,2]")
 
-    def directed_map(self, access_type, line_index, tag_address, summary):
-        self.invoke_access_type(access_type, line_index, tag_address, summary)
-
-    def nway_associative(self):
-        pass
-
-    def read(self, set_index, tag_address, summary):
-        indexed_set = self.sets[set_index]
-        for i in range(len(indexed_set.lines)):
-            summary.total_cache_accesses += 1
-            if self.sets[set_index].lines[i].valid == 0:
-                self.sets[set_index].lines[i].tag = tag_address
-                self.sets[set_index].lines[i].valid = 1
-
-                # update statistics
-                summary.num_cache_misses += 1
-                summary.num_cache_reads += 1
-            else:
-                if self.sets[set_index].lines[i].tag == tag_address:
-
-                    # update statistics
-                    summary.num_cache_hits += 1
-                    summary.num_cache_reads += 1
-                else:
-
-                    # update statistics
-                    summary.num_cache_misses += 1
-                    summary.num_cache_reads += 1
-
-                    if self.sets[set_index].lines[i].dirty == 1:
-                        summary.num_writebacks += 1
-                        self.sets[set_index].lines[i].dirty = 0
-
-                    summary.num_evictions += 1
-                    self.sets[set_index].lines[i].tag = tag_address
-
-    def write(self, set_index, tag_address, summary):
-        indexed_set = self.sets[set_index]
-        for i in range(len(indexed_set.lines)):
-            summary.total_cache_accesses += 1
-            if self.sets[set_index].lines[i].valid == 0:
-                self.sets[set_index].lines[i].tag = tag_address
-                self.sets[set_index].lines[i].valid = 1
-                self.sets[set_index].lines[i].dirty = 1
-
-                # update statistics
-                summary.num_cache_misses += 1
-                summary.num_cache_writes += 1
-            else:
-                if self.sets[set_index].lines[i].tag == tag_address:
-
-                    # update statistics
-                    summary.num_cache_hits += 1
-                    summary.num_cache_writes += 1
-                    self.sets[set_index].lines[i].dirty = 1
-                else:
-
-                    # update statistics
-                    summary.num_cache_misses += 1
-                    summary.num_cache_writes += 1
-
-                    if self.sets[set_index].lines[i].dirty == 1:
-                        summary.num_writebacks += 1
-                        self.sets[set_index].lines[i].dirty = 0
-                    else:
-                        self.sets[set_index].lines[i].dirty = 1
-
-                    summary.num_evictions += 1
-                    self.sets[set_index].lines[i].tag = tag_address
-
-    def invalidate(self, set_index, tag_address, summary):
-        indexed_set = self.sets[set_index]
-        for i in range(len(indexed_set.lines)):
-            summary.total_cache_accesses += 1
-            if self.sets[set_index].lines[i].valid == 1:
-                if self.sets[set_index].lines[i].tag == tag_address:
-                    self.sets[set_index].lines[i].valid = 0
-
-            summary.num_invalidates += 1
 
     def bin_to_hex(self, binary):
         return '{:08X}'.format(int(binary, 2))

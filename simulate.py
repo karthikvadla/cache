@@ -49,7 +49,7 @@ class CacheSimulation(object):
 
         arg_parser.add_argument(
             "-r", "--replacement-policy",
-            help="Replacement Policy",
+            help="Replacement Policy should be either 0=True LRU or 1=1-Bit LRU",
             dest="replacement_policy", type=int, default=0, choices=[0,1])
 
         return arg_parser.parse_args(args)
